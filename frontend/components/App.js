@@ -1,20 +1,56 @@
 import React from 'react'
 import axios from 'axios'
 import Character from './Character'
+import { useEffect, useState } from 'react'
 
-const urlPlanets = 'http://localhost:9009/api/planets'
-const urlPeople = 'http://localhost:9009/api/people'
+const urlPlanets = 'http://localhost:9009/api/planets';
+console.log(urlPlanets);
+const urlPeople = 'http://localhost:9009/api/people';
+console.log(urlPeople);
 
 function App() {
-  // ❗ Create state to hold the data from the API
-  // ❗ Create effects to fetch the data and put it in state
+  const [starWarsPeople, setStarWarsPeople] = useState([]);
+  console.log(starWarsPeople);
+
+  useEffect(() => {
+    axios.get(urlPeople).then(res => {
+      console.log("test")
+      const peopleData = res.data;
+      axios.get(urlPlanets).then(res2 => {
+        const addressData = res2.data;
+
+        const peopleWithAddresses = peopleData.map((person) => {
+          const planet = addressData.find((address) => address.id === person.homeworld);
+
+          return {
+            id: person.id,
+            name: person.name,
+            address: planet.name
+          };
+        });
+
+        setStarWarsPeople(peopleWithAddresses);
+        console.log(starWarsPeople);
+      });
+    });
+  }, []);
+
+  if (!starWarsPeople.length) return "Searching for Star Wars Characters.."
+
   return (
     <div>
-      <h2>Star Wars Characters</h2>
-      <p>See the README of the project for instructions on completing this challenge</p>
-      {/* ❗ Map over the data in state, rendering a Character at each iteration */}
+      <h1>Star Wars Characters </h1>
+      <p>{starWarsPeople.length < 1 && 'Loading'}</p>
+      { starWarsPeople.length > 0 && starWarsPeople.map((characterInfo) => {
+        return (<Character
+        key = {characterInfo.id}
+        character = {characterInfo.name}
+        homePlanet = {characterInfo.address}
+      
+      />)
+      })}
     </div>
-  )
+  );
 }
 
 export default App
